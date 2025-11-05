@@ -28,11 +28,14 @@ conectarDB();
 
 // Dominios Permitidos
 const whiteList = [
-    process.env.E_FRONT, process.env.TEST_BACK
+    process.env.E_FRONT,
+    process.env.TEST_BACK
 ];
-if(process.argv[2]==='--api'){
-    whiteList.push(undefined);
+
+if (process.argv[2] === '--api') {
+    whiteList.push(undefined);//provienen del mismo host | postman
 }
+
 const corsOptions = {
     origin: function (origin, callback) {
         // Comprobar en la lista blanca
