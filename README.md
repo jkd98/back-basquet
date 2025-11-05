@@ -1,8 +1,10 @@
-# Instalar dependencias
+# Leanme
+
+## Instalar dependencias
 ```bash
 npm i
 ```
-# Levantar el servidor
+## Levantar el servidor
 ```bash
 npm run dev:api
 ```
