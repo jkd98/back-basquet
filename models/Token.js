@@ -12,7 +12,6 @@ const tokenSchema = mongoose.Schema(
         userId: { type: mongoose.Schema.Types.ObjectId, required: true },
         code: { type: String, required: true },
         expiresAt: { type: Date, required: true },
-        used: { type: Boolean, required: true },
         typeCode: {
             type: String,
             required: true,

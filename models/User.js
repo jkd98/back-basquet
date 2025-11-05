@@ -1,18 +1,12 @@
 import mongoose from "mongoose";
 
-const usuarioSchema = mongoose.Schema(
+const userSchema = mongoose.Schema(
     {
-        name: {
+        fullname: {
             type: String,
             required: true,
             trim: true,
             minLength: [2, "El nombre debe tener al menos 2 caracteres."]
-        },
-        lastN: {
-            type: String,
-            required: true,
-            trim: true,
-            minLength: [2, "El apellido debe tener al menos 2 caracteres."]
         },
         pass: {
             type: String,
@@ -35,22 +29,22 @@ const usuarioSchema = mongoose.Schema(
         role: {
             type: String,
             default: 'Coach',
-            enum: ['Coach', '4DMlN']
+            enum: ['Coach', '4DMlN','Player']
+        },
+        isLogged:{
+            type:Boolean,
+            required:true,
+            default:false
         },
         policityAccepted:{
             type:Boolean,
             default:false
         },
-        ubic:{
-            lat:{type:String},
-            alt:{type:String}
-        }
-
     },
     {
         timestamps: true
     }
 );
 
-const Usuario = mongoose.model("Usuario", usuarioSchema);
-export default Usuario;
+const User = mongoose.model("User", userSchema);
+export default User;

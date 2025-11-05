@@ -1,7 +1,7 @@
-import { Respuesta } from "../models/Respuesta.js"
+import { ServerResponse } from "../models/ServerResponse.js";
 
 export const checkRole = async (req, res, next) => {
-    let respuesta = new Respuesta();
+    let respuesta = new ServerResponse();
     try {
         const { role } = req.usuario;
         if (role != '4DMlN') {

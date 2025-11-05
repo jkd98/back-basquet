@@ -1,4 +1,4 @@
-export class Respuesta {
+export class ServerResponse {
     status = '';
     msg = '';
     data = null;

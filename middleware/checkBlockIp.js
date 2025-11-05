@@ -20,11 +20,11 @@ export const checkBloquedIP = async (req, res, next) => {
     }
 
     // Buscar intentos fallidos recientes en Mongo
-    const desde = new Date(Date.now() - VENTANA_TIEMPO_MIN * 60 * 1000); // últimos 10 minutos
+    const desde = new Date(Date.now() - VENTANA_TIEMPO_MIN * 60 * 1000); // últimos n minutos
 
     const intentosFallidos = await Log.countDocuments({
         ip,
-        ruta: '/auth/verify-2fa',
+        ruta: '/auth/login',
         nivel: 'error',
         fecha: { $gte: desde }
     });
