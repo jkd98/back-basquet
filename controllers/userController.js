@@ -344,6 +344,44 @@ export const resetPassword = async (req, res) => {
     }
 }
 
+export const requestNewPassCode = async (req, res) => {
+    let respuesta = new ServerResponse();
+
+    try {
+        const { email } = req.body;
+
+        // Verificar si el email ya está registrado
+        const existsUser = await User.findOne({ email });
+        if (!existsUser) {
+            respuesta.status = 'error';
+            respuesta.msg = 'El usuario no esta registrado';
+            return res.status(404).json(respuesta);
+        }
+
+        //Verificar si no ha confirmado la cuenta
+        if (!existsUser.emailConfirm) {
+            respuesta.status = 'error';
+            respuesta.msg = 'Esta cuenta no ha sido confirmada';
+            return res.status(401).json(respuesta);
+        }
+
+        // Generar token
+        const token = await generateToken(existsUser, tokenTypes.PASSWORD_RESET);
+
+        //emailOlvidePass({ email, name: existsUser.name, token: token.code });
+
+        respuesta.status = 'success';
+        respuesta.msg = 'Nuevo token enviado al email';
+        return res.status(201).json(respuesta);
+
+    } catch (error) {
+        console.log(error);
+        respuesta.status = 'error';
+        respuesta.msg = 'Error al generar el token';
+        return res.status(500).json(respuesta);
+    }
+}
+
 export const listAllUsers = async (req, res) => {
     let respuesta = new ServerResponse();
     try {
