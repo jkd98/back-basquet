@@ -226,7 +226,7 @@ export const logOut = async (req, res) => {
             return res.status(404).json(respuesta);
         }
 
-        existsUser.logged = false;
+        existsUser.isLogged = false;
 
         await existsUser.save()
         respuesta.status = 'success';
