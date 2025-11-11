@@ -29,7 +29,7 @@ const userSchema = mongoose.Schema(
         role: {
             type: String,
             default: 'Coach',
-            enum: ['Coach', '4DMlN','Player']
+            enum: ['Coach', '4DMlN','Arbiter']
         },
         isLogged:{
             type:Boolean,
