@@ -1,8 +1,6 @@
-import { ServerResponse } from '../models/ServerResponse.js';
 import League from '../models/League.js';
 import Team from '../models/Team.js';
-
-let response = new ServerResponse();
+import { createResponse } from '../helpers/createResponse.js';
 
 export const createLeague = async (req, res) => {
     const { _id } = req.usuario;
@@ -24,12 +22,7 @@ export const createLeague = async (req, res) => {
     }
 }
 
-const createResponse = (status, msg, data = null) => {
-    response.status = status;
-    response.msg = msg;
-    response.data = data;
-    return response;
-}
+
 
 export const getLeaguesByUser  = async (req, res) => {
     const { _id } = req.usuario;

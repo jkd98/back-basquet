@@ -10,6 +10,7 @@ import { sanitizeObject } from './middleware/sanitiza.js';
 //  +++++++++++ Routes +++++++++++++++++
 import userRoutes from './routes/userRoutes.js';
 import leagueRoutes from './routes/leagueRoutes.js';
+import teamRoutes from './routes/teamRoutes.js';
 
 // Esto va a buscar por un archivo .env
 dotenv.config();
@@ -68,6 +69,7 @@ app.use((req, res, next) => {
 app.use('/public/uploads', express.static('public/uploads')); // 'uploads' es la carpeta donde guardas las imágenes
 app.use('/auth', userRoutes);
 app.use('/league', leagueRoutes);
+app.use('/team', teamRoutes);
 
 
 // Iniciando el servidor
