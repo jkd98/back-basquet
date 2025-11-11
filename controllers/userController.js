@@ -37,7 +37,7 @@ export const registerUser = async (req, res) => {
             fullname,
             email,
             pass: hashedPassword,
-            role: isFirstUSer === 0 ? '4DMlN' : 'Player'
+            role: isFirstUSer === 0 ? '4DMlN' : 'Coach'
         });
 
         console.log("Preregistro:\n", nwUser);

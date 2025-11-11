@@ -1,19 +1,21 @@
 import { ServerResponse } from "../models/ServerResponse.js";
 
-export const checkRole = async (req, res, next) => {
-    let respuesta = new ServerResponse();
-    try {
-        const { role } = req.usuario;
-        if (role != '4DMlN') {
+export function checkRole(rol='4DMlN') {
+    return async (req, res, next) => {
+        let respuesta = new ServerResponse();
+        try {
+            const { role } = req.usuario;
+            if (role !== rol) {
+                respuesta.status = 'error';
+                respuesta.msg = 'No tienes los permisos necesarios';
+                return res.status(401).json(respuesta);
+            }
+            next();
+        } catch (error) {
             respuesta.status = 'error';
-            respuesta.msg = 'No eres administrador';
-            return res.status(401).json(respuesta);
+            respuesta.msg = 'No estas autenticado';
+            respuesta.data = error.message;
+            return res.status(500).json(respuesta);
         }
-        next();
-    } catch (error) {
-        respuesta.status = 'error';
-        respuesta.msg = 'No estas autenticado';
-        respuesta.data = error.message;
-        return res.status(500).json(respuesta);
     }
-}
+} 

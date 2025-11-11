@@ -9,6 +9,7 @@ import { sanitizeObject } from './middleware/sanitiza.js';
 
 //  +++++++++++ Routes +++++++++++++++++
 import userRoutes from './routes/userRoutes.js';
+import leagueRoutes from './routes/leagueRoutes.js';
 
 // Esto va a buscar por un archivo .env
 dotenv.config();
@@ -38,6 +39,7 @@ if (process.argv[2] === '--api') {
 
 const corsOptions = {
     origin: function (origin, callback) {
+        console.log(origin)
         // Comprobar en la lista blanca
         if (whiteList.includes(origin)) {
             // Puede consultar la API
@@ -65,6 +67,7 @@ app.use((req, res, next) => {
 //http://tu-servidor.com/uploads/nombreArchivo.jpg
 app.use('/public/uploads', express.static('public/uploads')); // 'uploads' es la carpeta donde guardas las imágenes
 app.use('/auth', userRoutes);
+app.use('/league', leagueRoutes);
 
 
 // Iniciando el servidor
