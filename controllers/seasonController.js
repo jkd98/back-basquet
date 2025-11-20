@@ -23,9 +23,9 @@ export const createSeason = async (req, res) => {
             }
         }
 
-        const newSeason = new Season({ 
+        const newSeason = new Season({
             league,
-            year, 
+            year,
             startDate,
             endDate,
             status: status || 'upcoming'
@@ -33,7 +33,7 @@ export const createSeason = async (req, res) => {
 
         const seasonSaved = await newSeason.save();
         await seasonSaved.populate('league', 'name sport');
-        
+
         const respuesta = createResponse('success', 'Temporada creada correctamente', seasonSaved);
         return res.status(201).json(respuesta);
 
@@ -51,7 +51,7 @@ export const getSeasons = async (req, res) => {
             .populate('mvpPlayerId', 'fullname picture')
             .populate('weekMvplayerId', 'fullname picture')
             .populate('standings.teamId', 'name logo');
-        
+
         const respuesta = createResponse('success', 'Temporadas obtenidas correctamente', seasons);
         return res.status(200).json(respuesta);
     } catch (error) {
@@ -86,7 +86,17 @@ export const getSeasonById = async (req, res) => {
 export const updateSeason = async (req, res) => {
     try {
         const { id } = req.params;
-        const updates = req.body;
+        const {
+            league,
+            year,
+            startDate,
+            endDate,
+            status,
+            championTeamId,
+            mvpPlayerId,
+            weekMvplayerId,
+            standings
+        } = req.body;
 
         // Verificar si la temporada existe
         const existingSeason = await Season.findById(id);
@@ -96,48 +106,60 @@ export const updateSeason = async (req, res) => {
         }
 
         // Validar referencias si se están actualizando
-        if (updates.league) {
-            const leagueExists = await League.findById(updates.league);
+        if (league) {
+            const leagueExists = await League.findById(league);
             if (!leagueExists) {
                 const respuesta = createResponse('error', 'La liga especificada no existe', null);
                 return res.status(404).json(respuesta);
             }
         }
 
-        if (updates.championTeamId) {
-            const teamExists = await Team.findById(updates.championTeamId);
+        if (championTeamId) {
+            const teamExists = await Team.findById(championTeamId);
             if (!teamExists) {
                 const respuesta = createResponse('error', 'El equipo campeón especificado no existe', null);
                 return res.status(404).json(respuesta);
             }
         }
 
-        if (updates.mvpPlayerId) {
-            const playerExists = await Player.findById(updates.mvpPlayerId);
+        if (mvpPlayerId) {
+            const playerExists = await Player.findById(mvpPlayerId);
             if (!playerExists) {
                 const respuesta = createResponse('error', 'El jugador MVP especificado no existe', null);
                 return res.status(404).json(respuesta);
             }
         }
 
-        if (updates.weekMvplayerId) {
-            const playerExists = await Player.findById(updates.weekMvplayerId);
+        if (weekMvplayerId) {
+            const playerExists = await Player.findById(weekMvplayerId);
             if (!playerExists) {
                 const respuesta = createResponse('error', 'El jugador MVP de la semana especificado no existe', null);
                 return res.status(404).json(respuesta);
             }
         }
 
+        // Crear objeto de actualización solo con los campos que vinieron
+        const updateData = {};
+        if (league !== undefined) updateData.league = league;
+        if (year !== undefined) updateData.year = year;
+        if (startDate !== undefined) updateData.startDate = startDate;
+        if (endDate !== undefined) updateData.endDate = endDate;
+        if (status !== undefined) updateData.status = status;
+        if (championTeamId !== undefined) updateData.championTeamId = championTeamId;
+        if (mvpPlayerId !== undefined) updateData.mvpPlayerId = mvpPlayerId;
+        if (weekMvplayerId !== undefined) updateData.weekMvplayerId = weekMvplayerId;
+        if (standings !== undefined) updateData.standings = standings;
+
         const updatedSeason = await Season.findByIdAndUpdate(
-            id, 
-            updates, 
+            id,
+            updateData,
             { new: true, runValidators: true }
         )
-        .populate('league', 'name sport')
-        .populate('championTeamId', 'name logo')
-        .populate('mvpPlayerId', 'fullname picture')
-        .populate('weekMvplayerId', 'fullname picture')
-        .populate('standings.teamId', 'name logo');
+            .populate('league', 'name sport')
+            .populate('championTeamId', 'name logo')
+            .populate('mvpPlayerId', 'fullname picture')
+            .populate('weekMvplayerId', 'fullname picture')
+            .populate('standings.teamId', 'name logo');
 
         const respuesta = createResponse('success', 'Temporada actualizada correctamente', updatedSeason);
         return res.status(200).json(respuesta);
@@ -168,51 +190,7 @@ export const deleteSeason = async (req, res) => {
     }
 }
 
-export const updateStandings = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { standings } = req.body;
 
-        if (!standings || !Array.isArray(standings)) {
-            const respuesta = createResponse('error', 'El campo standings debe ser un array', null);
-            return res.status(400).json(respuesta);
-        }
-
-        // Verificar que todos los equipos en el standings existen
-        for (const standing of standings) {
-            if (standing.teamId) {
-                const teamExists = await Team.findById(standing.teamId);
-                if (!teamExists) {
-                    const respuesta = createResponse('error', `El equipo con ID ${standing.teamId} no existe`, null);
-                    return res.status(404).json(respuesta);
-                }
-            }
-        }
-
-        const updatedSeason = await Season.findByIdAndUpdate(
-            id,
-            { standings },
-            { new: true, runValidators: true }
-        )
-        .populate('league', 'name sport')
-        .populate('championTeamId', 'name logo')
-        .populate('mvpPlayerId', 'fullname picture')
-        .populate('weekMvplayerId', 'fullname picture')
-        .populate('standings.teamId', 'name logo');
-
-        if (!updatedSeason) {
-            const respuesta = createResponse('error', 'Temporada no encontrada', null);
-            return res.status(404).json(respuesta);
-        }
-
-        const respuesta = createResponse('success', 'Tabla de posiciones actualizada correctamente', updatedSeason);
-        return res.status(200).json(respuesta);
-
-    } catch (error) {
-        const respuesta = createResponse('error', 'Error al actualizar la tabla de posiciones', null);
-        return res.status(500).json(respuesta);
-    }
-}
 
 export const getSeasonsByLeague = async (req, res) => {
     try {
@@ -248,11 +226,11 @@ export const updateSeasonStatus = async (req, res) => {
             { status },
             { new: true, runValidators: true }
         )
-        .populate('league', 'name sport')
-        .populate('championTeamId', 'name logo')
-        .populate('mvpPlayerId', 'fullname picture')
-        .populate('weekMvplayerId', 'fullname picture')
-        .populate('standings.teamId', 'name logo');
+            .populate('league', 'name sport')
+            .populate('championTeamId', 'name logo')
+            .populate('mvpPlayerId', 'fullname picture')
+            .populate('weekMvplayerId', 'fullname picture')
+            .populate('standings.teamId', 'name logo');
 
         if (!updatedSeason) {
             const respuesta = createResponse('error', 'Temporada no encontrada', null);

@@ -5,23 +5,22 @@ import {
     getSeasonById,
     updateSeason,
     deleteSeason,
-    updateStandings,
     getSeasonsByLeague,
     updateSeasonStatus
 } from '../controllers/seasonController.js';
 import checkAuth from '../middleware/checkAuth.js';
-
+import { checkRole } from '../middleware/checkRole.js';
 const router = express.Router();
 
 router.use(checkAuth)
 
-router.post('/seasons', createSeason);
-router.get('/seasons', getSeasons);
-router.get('/seasons/league/:leagueId', getSeasonsByLeague);
-router.get('/seasons/:id', getSeasonById);
-router.put('/seasons/:id', updateSeason);
-router.patch('/seasons/:id/status', updateSeasonStatus);
-router.patch('/seasons/:id/standings', updateStandings);
-router.delete('/seasons/:id', deleteSeason);
+router.post('/', checkRole(), createSeason);
+router.get('/', getSeasons);
+router.get('/league/:leagueId', getSeasonsByLeague);
+router.get('/:id', getSeasonById);
+router.put('/:id', checkRole(), updateSeason);
+router.patch('/:id/status', checkRole(), updateSeasonStatus);
+
+router.delete('/:id', checkRole(),deleteSeason);
 
 export default router;
