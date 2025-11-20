@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-playerSchema = mongoose.Schema({
+const playerSchema = mongoose.Schema({
     fullname: {
         type: String,
         required: true,
@@ -22,6 +22,10 @@ playerSchema = mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Team',
         required: true
+    },
+    isLider: {
+        type: Boolean,
+        default: false
     }
 });
 
