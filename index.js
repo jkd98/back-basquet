@@ -12,6 +12,7 @@ import userRoutes from './routes/userRoutes.js';
 import leagueRoutes from './routes/leagueRoutes.js';
 import teamRoutes from './routes/teamRoutes.js';
 import playerRoutes from './routes/playerRoutes.js';
+import seasonRoutes from './routes/seasonRoutes.js';
 
 // Esto va a buscar por un archivo .env
 dotenv.config();
@@ -72,6 +73,7 @@ app.use('/auth', userRoutes);
 app.use('/league', leagueRoutes);
 app.use('/team', teamRoutes);
 app.use('/player', playerRoutes);
+app.use('/season', seasonRoutes);
 
 
 // Iniciando el servidor
