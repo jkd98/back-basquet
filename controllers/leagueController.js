@@ -40,7 +40,7 @@ export const getLeaguesByUser = async (req, res) => {
     const { _id } = req.usuario;
     try {
         const leagues = await League.find({ userId: _id })
-            .populate('userId', 'fullname email')
+            .populate('userId', 'name email')
             .sort({ createdAt: -1 });
 
         const response = createResponse('success', 'Ligas obtenidas correctamente', leagues);
@@ -58,7 +58,7 @@ export const getLeagueById = async (req, res) => {
 
     try {
         const league = await League.findById(id)
-            .populate('userId', 'fullname email');
+            .populate('userId', 'name email');
 
         if (!league) {
             const response = createResponse('error', 'Liga no encontrada', null);
