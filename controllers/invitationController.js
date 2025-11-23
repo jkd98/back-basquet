@@ -1,16 +1,23 @@
 import Invitation from "../models/Invitation.js";
 import { generateSixDigitToken } from "../helpers/genSixDigitToken.js";
 import { createResponse } from "../helpers/createResponse.js";
+import { DateTime } from 'luxon';
 
 export const createInvitation = async (req, res) => {
     try {
-        const { season, expireAt } = req.body;
+        const { season, expireAt, clientTimeZone } = req.body;
         const code = generateSixDigitToken();
+        // 1. Tomar la fecha del cliente y la zona horaria que envió.
+        //    Creamos la fecha como 23:59:59 en la ZONA HORARIA DEL CLIENTE.
+        const localTimeLimit = DateTime.fromISO(expireAt, { zone: clientTimeZone })
+            .set({ hour: 23, minute: 59, second: 59, millisecond: 999 });
 
+        // 2. Convertir ese punto temporal a un objeto Date (que es UTC) para Mongoose.
+        const horaDeCorteUTC = localTimeLimit.toJSDate();
         const newInvitation = new Invitation({
-            seasonId:season,
+            seasonId: season,
             code,
-            expireAt
+            expireAt: horaDeCorteUTC
         });
 
         await newInvitation.save();
