@@ -44,9 +44,9 @@ if (process.argv[2] === '--api') {
 
 const corsOptions = {
     origin: function (origin, callback) {
-        console.log('Origin:', origin)
-        // Permitir requests sin origin (como Postman) o desde whitelist
-        if (!origin || whiteList.includes(origin)) {
+        console.log(origin)
+        // Comprobar en la lista blanca
+        if (whiteList.includes(origin)) {
             // Puede consultar la API
             callback(null, true);
         } else {

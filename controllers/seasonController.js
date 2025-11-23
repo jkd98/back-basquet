@@ -8,6 +8,8 @@ export const createSeason = async (req, res) => {
     try {
         const { league, year, startDate, endDate, status } = req.body;
 
+        // TODO: Validar que no exista otra temporada con el mismo año en la misma liga
+
         // Validaciones básicas
         if (!year || !startDate) {
             const respuesta = createResponse('error', 'Año y fecha de inicio son requeridos', null);
@@ -32,7 +34,7 @@ export const createSeason = async (req, res) => {
         });
 
         const seasonSaved = await newSeason.save();
-        await seasonSaved.populate('league', 'name sport');
+        await seasonSaved.populate('league', 'name');
 
         const respuesta = createResponse('success', 'Temporada creada correctamente', seasonSaved);
         return res.status(201).json(respuesta);
@@ -43,10 +45,11 @@ export const createSeason = async (req, res) => {
     }
 }
 
+// TODO: Creo que este no se necesita
 export const getSeasons = async (req, res) => {
     try {
         const seasons = await Season.find()
-            .populate('league', 'name sport')
+            .populate('league', 'name')
             .populate('championTeamId', 'name logo')
             .populate('mvpPlayerId', 'fullname picture')
             .populate('weekMvplayerId', 'fullname picture')
@@ -64,7 +67,7 @@ export const getSeasonById = async (req, res) => {
     try {
         const { id } = req.params;
         const season = await Season.findById(id)
-            .populate('league', 'name sport')
+            .populate('league', 'name category')
             .populate('championTeamId', 'name logo')
             .populate('mvpPlayerId', 'fullname picture')
             .populate('weekMvplayerId', 'fullname picture')
@@ -155,7 +158,7 @@ export const updateSeason = async (req, res) => {
             updateData,
             { new: true, runValidators: true }
         )
-            .populate('league', 'name sport')
+            .populate('league', 'name category')
             .populate('championTeamId', 'name logo')
             .populate('mvpPlayerId', 'fullname picture')
             .populate('weekMvplayerId', 'fullname picture')
@@ -191,13 +194,12 @@ export const deleteSeason = async (req, res) => {
 }
 
 
-
 export const getSeasonsByLeague = async (req, res) => {
     try {
         const { leagueId } = req.params;
 
         const seasons = await Season.find({ league: leagueId })
-            .populate('league', 'name sport')
+            .populate('league', 'name category')
             .populate('championTeamId', 'name logo')
             .populate('mvpPlayerId', 'fullname picture')
             .populate('weekMvplayerId', 'fullname picture')
@@ -226,7 +228,7 @@ export const updateSeasonStatus = async (req, res) => {
             { status },
             { new: true, runValidators: true }
         )
-            .populate('league', 'name sport')
+            .populate('league', 'name category')
             .populate('championTeamId', 'name logo')
             .populate('mvpPlayerId', 'fullname picture')
             .populate('weekMvplayerId', 'fullname picture')
@@ -245,3 +247,4 @@ export const updateSeasonStatus = async (req, res) => {
         return res.status(500).json(respuesta);
     }
 }
+
