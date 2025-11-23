@@ -34,7 +34,8 @@ conectarDB();
 // Dominios Permitidos
 const whiteList = [
     process.env.E_FRONT,
-    process.env.TEST_BACK
+    process.env.TEST_BACK,
+    'http://localhost:4200' // Frontend Angular en desarrollo
 ];
 
 if (process.argv[2] === '--api') {
@@ -43,13 +44,14 @@ if (process.argv[2] === '--api') {
 
 const corsOptions = {
     origin: function (origin, callback) {
-        console.log(origin)
-        // Comprobar en la lista blanca
-        if (whiteList.includes(origin)) {
+        console.log('Origin:', origin)
+        // Permitir requests sin origin (como Postman) o desde whitelist
+        if (!origin || whiteList.includes(origin)) {
             // Puede consultar la API
             callback(null, true);
         } else {
             // No esta permitido
+            console.log('CORS bloqueado para:', origin);
             callback(new Error("Error de CORS"));
         };
     },
