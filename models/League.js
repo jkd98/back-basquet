@@ -15,13 +15,7 @@ const leaguesSchema = mongoose.Schema({
         type: String,
         required: true
     },
-    logo: { type: String },
-    teams: [
-        {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Team'
-        }
-    ]
+    logo: { type: String }
 });
 
 const League = mongoose.model('League', leaguesSchema);
