@@ -1,5 +1,6 @@
 import Invitation from "../models/Invitation.js";
 import { generateSixDigitToken } from "../helpers/genSixDigitToken.js";
+import { createResponse } from "../helpers/createResponse.js";
 
 export const createInvitation = async (req, res) => {
     try {
