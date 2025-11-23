@@ -43,7 +43,7 @@ if (process.argv[2] === '--api') {
 
 const corsOptions = {
     origin: function (origin, callback) {
-        console.log(origin)
+        //console.log(origin)
         // Comprobar en la lista blanca
         if (whiteList.includes(origin)) {
             // Puede consultar la API

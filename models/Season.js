@@ -24,6 +24,12 @@ const seasonSchema = mongoose.Schema({
             message: '{VALUE} is not supported'
         }
     },
+    teams: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Team'
+        }
+    ],
     championTeamId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Team'
