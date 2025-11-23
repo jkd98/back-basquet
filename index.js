@@ -14,6 +14,7 @@ import teamRoutes from './routes/teamRoutes.js';
 import playerRoutes from './routes/playerRoutes.js';
 import seasonRoutes from './routes/seasonRoutes.js';
 import roleplayRoutes from './routes/roleplayRoutes.js';
+import invitationRoutes from './routes/invitationRoutes.js';
 
 // Esto va a buscar por un archivo .env
 dotenv.config();
@@ -76,6 +77,7 @@ app.use('/team', teamRoutes);
 app.use('/player', playerRoutes);
 app.use('/season', seasonRoutes);
 app.use('/roleplay', roleplayRoutes);
+app.use('/invitation',invitationRoutes);
 
 // Iniciando el servidor
 app.listen(port, () => {

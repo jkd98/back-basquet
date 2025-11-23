@@ -6,6 +6,11 @@ const invitationSchema = mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Season'
     },
+    code:{
+        type: String,
+        required: true,
+        unique: true
+    },
     expireAt: {
         type: Date,
         required: true
