@@ -40,7 +40,6 @@ export const getLeaguesByUser = async (req, res) => {
     const { _id } = req.usuario;
     try {
         const leagues = await League.find({ userId: _id })
-            .populate('teams', 'name logo coach availabilityDays')
             .populate('userId', 'name email')
             .sort({ createdAt: -1 });
 
@@ -59,7 +58,6 @@ export const getLeagueById = async (req, res) => {
 
     try {
         const league = await League.findById(id)
-            .populate('teams', 'name logo coach availabilityDays')
             .populate('userId', 'name email');
 
         if (!league) {
@@ -127,8 +125,8 @@ export const updateLeague = async (req, res) => {
         if (name !== undefined && name.trim() !== '') {
             league.name = name;
         }
-        
-        if (category !== undefined && category.trim() !== ''){
+
+        if (category !== undefined && category.trim() !== '') {
             league.category = category;
         }
         if (req.file) {
