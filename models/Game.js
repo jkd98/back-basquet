@@ -21,7 +21,7 @@ const gameSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['pending', 'played', 'canceled'],
+        enum: ['pending', 'scheduled', 'played', 'canceled'],
         default: 'pending'
     },
     scoreA: {

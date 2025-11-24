@@ -90,3 +90,36 @@ export const generateGames = async (req, res) => {
         return res.status(500).json(respuesta);
     }
 }
+
+export const updateGameDate = async (req, res) => {
+    try {
+        const { gameId } = req.params;
+        const { date } = req.body;
+
+        if (!date) {
+            const respuesta = createResponse('error', 'La fecha es requerida', null);
+            return res.status(400).json(respuesta);
+        }
+
+        const game = await Game.findById(gameId);
+        if (!game) {
+            const respuesta = createResponse('error', 'Juego no encontrado', null);
+            return res.status(404).json(respuesta);
+        }
+
+        game.date = new Date(date);
+        game.status = 'scheduled';
+        await game.save();
+
+        const updatedGame = await Game.findById(gameId)
+            .populate('teamA', 'name logo')
+            .populate('teamB', 'name logo');
+
+        const respuesta = createResponse('success', 'Fecha asignada correctamente', updatedGame);
+        return res.status(200).json(respuesta);
+    } catch (error) {
+        console.error(error);
+        const respuesta = createResponse('error', 'Error al actualizar la fecha del juego', null);
+        return res.status(500).json(respuesta);
+    }
+}
