@@ -248,3 +248,33 @@ export const updateSeasonStatus = async (req, res) => {
     }
 }
 
+
+export const getSeasonTeams = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const season = await Season.findById(id).populate({
+            path: 'teams',
+            populate: { path: 'coach', select: 'fullname' }
+        });
+
+        if (!season) {
+            const respuesta = createResponse('error', 'Temporada no encontrada', null);
+            return res.status(404).json(respuesta);
+        }
+
+        const teamsWithStats = await Promise.all(season.teams.map(async (team) => {
+            const playerCount = await Player.countDocuments({ teamId: team._id });
+            return {
+                ...team.toObject(),
+                playerCount
+            };
+        }));
+
+        const respuesta = createResponse('success', 'Equipos de la temporada obtenidos correctamente', teamsWithStats);
+        return res.status(200).json(respuesta);
+
+    } catch (error) {
+        const respuesta = createResponse('error', 'Error al obtener los equipos de la temporada', null);
+        return res.status(500).json(respuesta);
+    }
+}
