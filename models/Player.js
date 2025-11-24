@@ -12,11 +12,12 @@ const playerSchema = mongoose.Schema({
     },
     picture: {
         type: String,
-        required: true
+        required: false,
+        default: ''
     },
-    jersey:{
-        type:Number,
-        required:true
+    jersey: {
+        type: Number,
+        required: true
     },
     teamId: {
         type: mongoose.Schema.Types.ObjectId,

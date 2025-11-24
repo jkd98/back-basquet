@@ -40,9 +40,7 @@ router.post('/logout', validateEmail, handlingErrors, logOut);
 router.post('/request-pass', validateEmail, handlingErrors, requestNewPassword);
 router.post('/verify-passcode', validateCode, handlingErrors, verifyTokenAtNewPass);
 router.post('/reset-pass', validateNewPass, handlingErrors, resetPassword);
-router.post('/request-code-pass',validateEmail,handlingErrors,requestNewPassCode);
-router.get('/users', checkAuth, checkRole() ,listAllUsers)
+router.post('/request-code-pass', validateEmail, handlingErrors, requestNewPassCode);
+router.get('/users', checkAuth, checkRole(), listAllUsers)
 
 export default router;
-
-//Para este viernes 1 nivel

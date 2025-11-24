@@ -14,6 +14,20 @@ const invitationSchema = mongoose.Schema({
     expireAt: {
         type: Date,
         required: true
+    },
+    status: {
+        type: String,
+        enum: ['pending', 'used', 'expired'],
+        default: 'pending'
+    },
+    usedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        default: null
+    },
+    usedAt: {
+        type: Date,
+        default: null
     }
 });
 

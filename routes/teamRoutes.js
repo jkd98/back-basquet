@@ -9,8 +9,8 @@ import { createTeam, getTeamById, getTeamsByUser } from '../controllers/teamCont
 const router = express.Router();
 router.use(checkAuth);
 
-router.post('/', checkRole(), createTeam);
-router.get('/by-user', checkRole(), getTeamsByUser);
-router.get('/:id', checkRole(), getTeamById);
+router.post('/', checkRole(['Coach']), createTeam);
+router.get('/by-user', checkRole(['Coach']), getTeamsByUser);
+router.get('/:id', checkRole(['Coach']), getTeamById);
 
 export default router;

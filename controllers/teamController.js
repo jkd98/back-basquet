@@ -3,6 +3,7 @@ import { createResponse } from '../helpers/createResponse.js';
 import upload from '../middleware/procesImage.js';
 import Invitation from '../models/Invitation.js';
 import Season from '../models/Season.js';
+import Player from '../models/Player.js';
 
 export const createTeam = async (req, res) => {
     try {
@@ -17,7 +18,7 @@ export const createTeam = async (req, res) => {
         console.log('Body después de upload:', req.body);
         console.log('File:', req.file);
 
-        const { name, availabilityDays, code } = req.body;
+        const { name, availabilityDays, code, players } = req.body;
         const { _id } = req.usuario;
 
         // Validaciones
@@ -31,15 +32,26 @@ export const createTeam = async (req, res) => {
 
         // Validar codigo se temporada
         const fechaDeHoyUTC = new Date();
-        console.log('Fecha de hoy UTC:', fechaDeHoyUTC);
-        const isValidInvitationCode = await Invitation.findOne({ code: code, expireAt: { $gte: fechaDeHoyUTC } });
-        if (!isValidInvitationCode) {
-            const respuesta = createResponse('error', 'Código de invitación inválido o expirado');
-            return res.status(400).json(respuesta)
+        const invitation = await Invitation.findOne({ code: code });
+
+        if (!invitation) {
+            const respuesta = createResponse('error', 'Código de invitación no encontrado');
+            return res.status(404).json(respuesta);
         }
-        console.log(isValidInvitationCode);
-        const season = await Season.findById(isValidInvitationCode.seasonId);
-        console.log(season);
+
+        if (invitation.status !== 'pending') {
+            const respuesta = createResponse('error', 'Esta invitación ya ha sido utilizada o expiró');
+            return res.status(400).json(respuesta);
+        }
+
+        if (invitation.expireAt < fechaDeHoyUTC) {
+            invitation.status = 'expired';
+            await invitation.save();
+            const respuesta = createResponse('error', 'La invitación ha expirado');
+            return res.status(400).json(respuesta);
+        }
+
+        const season = await Season.findById(invitation.seasonId);
         if (!season) {
             const respuesta = createResponse('error', 'Temporada no encontrada para el código de invitación proporcionado');
             return res.status(400).json(respuesta);
@@ -49,22 +61,44 @@ export const createTeam = async (req, res) => {
         const newTeam = new Team({
             name,
             coach: _id,
-            availabilityDays,
+            availabilityDays: JSON.parse(availabilityDays), // Parse stringified array
             logo: req.file ? req.file.filename : null
         });
 
+        await newTeam.save();
+
+        // Crear jugadores
+        if (players) {
+            const playersList = JSON.parse(players); // Parse stringified array
+            if (Array.isArray(playersList)) {
+                const playerPromises = playersList.map(playerData => {
+                    const newPlayer = new Player({
+                        ...playerData,
+                        teamId: newTeam._id
+                    });
+                    return newPlayer.save();
+                });
+                await Promise.all(playerPromises);
+            }
+        }
+
         //Guardar equipo en la season
         season.teams.push(newTeam._id);
-        await Promise.allSettled([season.save(), newTeam.save()])
 
+        // Actualizar invitación
+        invitation.status = 'used';
+        invitation.usedBy = _id;
+        invitation.usedAt = new Date();
 
-        const respuesta = createResponse('success', 'Equipo creado correctamente');
+        await Promise.all([season.save(), invitation.save()]);
+
+        const respuesta = createResponse('success', 'Equipo registrado correctamente');
         return res.status(201).json(respuesta);
 
     } catch (error) {
-        // Aquí capturamos tanto errores de Multer como de la base de datos
-        const statusCode = error.message.includes('Tipo de archivo') ? 400 : 500;
-        const respuesta = createResponse('error', error.message, null);
+        console.error(error);
+        const statusCode = error.message && error.message.includes('Tipo de archivo') ? 400 : 500;
+        const respuesta = createResponse('error', error.message || 'Error al crear el equipo', null);
         return res.status(statusCode).json(respuesta);
     }
 }
@@ -87,7 +121,7 @@ export const getTeamsByUser = async (req, res) => {
         const respuesta = createResponse('success', 'Equipos obtenidos correctamente', teams);
         return res.status(200).json(respuesta);
     } catch (error) {
-        const respuesta = createResponse('error', 'Error al obtener equipos del usuatio', );
+        const respuesta = createResponse('error', 'Error al obtener equipos del usuatio',);
         return res.status(500).json(respuesta);
     }
 }
