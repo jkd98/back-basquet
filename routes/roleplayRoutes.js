@@ -1,6 +1,5 @@
 import express from 'express';
 import {
-    createRoleplay,
     getRoleplays,
     getRoleplayById,
     updateRoleplay,
@@ -20,7 +19,6 @@ import checkAuth from '../middleware/checkAuth.js';
 const router = express.Router();
 
 router.use(checkAuth);
-router.post('/roleplays', createRoleplay);
 router.get('/roleplays', getRoleplays);
 router.get('/roleplays/league/:leagueId', getRoleplaysByLeague);
 router.get('/roleplays/team/:teamId', getRoleplaysByTeam);

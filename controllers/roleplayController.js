@@ -5,88 +5,7 @@ import Team from '../models/Team.js';
 import Player from '../models/Player.js';
 import { createResponse } from '../helpers/createResponse.js';
 
-export const createRoleplay = async (req, res) => {
-    try {
-        const { leagueId, season, teamOne, teamTwo, date, status, officials } = req.body;
 
-        // Validaciones básicas
-        if (!leagueId || !teamOne?.teamId || !teamTwo?.teamId) {
-            const respuesta = createResponse('error', 'leagueId, teamOne.teamId y teamTwo.teamId son requeridos', null);
-            return res.status(400).json(respuesta);
-        }
-
-        // Verificar que la liga existe
-        const leagueExists = await League.findById(leagueId);
-        if (!leagueExists) {
-            const respuesta = createResponse('error', 'La liga especificada no existe', null);
-            return res.status(404).json(respuesta);
-        }
-
-        // Verificar que la temporada existe si se proporciona
-        if (season) {
-            const seasonExists = await Season.findById(season);
-            if (!seasonExists) {
-                const respuesta = createResponse('error', 'La temporada especificada no existe', null);
-                return res.status(404).json(respuesta);
-            }
-        }
-
-        // Verificar que los equipos existen
-        const teamOneExists = await Team.findById(teamOne.teamId);
-        const teamTwoExists = await Team.findById(teamTwo.teamId);
-        
-        if (!teamOneExists || !teamTwoExists) {
-            const respuesta = createResponse('error', 'Uno o ambos equipos no existen', null);
-            return res.status(404).json(respuesta);
-        }
-
-        // Verificar que no son el mismo equipo
-        if (teamOne.teamId.toString() === teamTwo.teamId.toString()) {
-            const respuesta = createResponse('error', 'No se puede crear un partido con el mismo equipo en ambos lados', null);
-            return res.status(400).json(respuesta);
-        }
-
-        // Inicializar playersStats si no se proporcionan
-        const teamOneData = {
-            teamId: teamOne.teamId,
-            score: teamOne.score || 0,
-            playersStats: teamOne.playersStats || []
-        };
-
-        const teamTwoData = {
-            teamId: teamTwo.teamId,
-            score: teamTwo.score || 0,
-            playersStats: teamTwo.playersStats || []
-        };
-
-        const newRoleplay = new Roleplay({ 
-            leagueId,
-            season,
-            teamOne: teamOneData,
-            teamTwo: teamTwoData,
-            date: date || new Date(),
-            status: status || 'scheduled',
-            officials: officials || []
-        });
-
-        const roleplaySaved = await newRoleplay.save();
-        await roleplaySaved.populate([
-            { path: 'leagueId', select: 'name sport' },
-            { path: 'season', select: 'year status' },
-            { path: 'teamOne.teamId', select: 'name logo' },
-            { path: 'teamTwo.teamId', select: 'name logo' },
-            { path: 'teamOne.playersStats.playerId', select: 'fullname picture jersey' },
-            { path: 'teamTwo.playersStats.playerId', select: 'fullname picture jersey' }
-        ]);
-
-        const respuesta = createResponse('success', 'Partido creado correctamente', roleplaySaved);
-        return res.status(201).json(respuesta);
-
-    } catch (error) {
-        const respuesta = createResponse('error', error.message, null);
-        return res.status(500).json(respuesta);
-    }
-}
 
 export const getRoleplays = async (req, res) => {
     try {
@@ -160,16 +79,16 @@ export const updateRoleplay = async (req, res) => {
         }
 
         const updatedRoleplay = await Roleplay.findByIdAndUpdate(
-            id, 
-            updates, 
+            id,
+            updates,
             { new: true, runValidators: true }
         )
-        .populate('leagueId', 'name sport')
-        .populate('season', 'year status')
-        .populate('teamOne.teamId', 'name logo')
-        .populate('teamTwo.teamId', 'name logo')
-        .populate('teamOne.playersStats.playerId', 'fullname picture jersey')
-        .populate('teamTwo.playersStats.playerId', 'fullname picture jersey');
+            .populate('leagueId', 'name sport')
+            .populate('season', 'year status')
+            .populate('teamOne.teamId', 'name logo')
+            .populate('teamTwo.teamId', 'name logo')
+            .populate('teamOne.playersStats.playerId', 'fullname picture jersey')
+            .populate('teamTwo.playersStats.playerId', 'fullname picture jersey');
 
         const respuesta = createResponse('success', 'Partido actualizado correctamente', updatedRoleplay);
         return res.status(200).json(respuesta);
@@ -239,7 +158,7 @@ export const updatePlayerPoints = async (req, res) => {
             // Actualizar puntos del jugador existente
             const updateQuery = {};
             updateQuery[`${teamSide}.playersStats.${playerIndex}.points`] = points;
-            
+
             updatedRoleplay = await Roleplay.findByIdAndUpdate(
                 id,
                 { $set: updateQuery },
@@ -251,7 +170,7 @@ export const updatePlayerPoints = async (req, res) => {
                 playerId: playerId,
                 points: points
             };
-            
+
             updatedRoleplay = await Roleplay.findByIdAndUpdate(
                 id,
                 { $push: { [`${teamSide}.playersStats`]: newPlayerStat } },
@@ -277,6 +196,7 @@ export const updatePlayerPoints = async (req, res) => {
     }
 }
 
+// TODO: Esto se puede ir actualizando segun la suma de puntos de los jugadores
 export const updateTeamScore = async (req, res) => {
     try {
         const { id } = req.params;
@@ -303,12 +223,12 @@ export const updateTeamScore = async (req, res) => {
             { $set: { [`${teamSide}.score`]: score } },
             { new: true, runValidators: true }
         )
-        .populate('leagueId', 'name sport')
-        .populate('season', 'year status')
-        .populate('teamOne.teamId', 'name logo')
-        .populate('teamTwo.teamId', 'name logo')
-        .populate('teamOne.playersStats.playerId', 'fullname picture jersey')
-        .populate('teamTwo.playersStats.playerId', 'fullname picture jersey');
+            .populate('leagueId', 'name sport')
+            .populate('season', 'year status')
+            .populate('teamOne.teamId', 'name logo')
+            .populate('teamTwo.teamId', 'name logo')
+            .populate('teamOne.playersStats.playerId', 'fullname picture jersey')
+            .populate('teamTwo.playersStats.playerId', 'fullname picture jersey');
 
         if (!updatedRoleplay) {
             const respuesta = createResponse('error', 'Partido no encontrado', null);
@@ -339,12 +259,12 @@ export const updateRoleplayStatus = async (req, res) => {
             { status },
             { new: true, runValidators: true }
         )
-        .populate('leagueId', 'name sport')
-        .populate('season', 'year status')
-        .populate('teamOne.teamId', 'name logo')
-        .populate('teamTwo.teamId', 'name logo')
-        .populate('teamOne.playersStats.playerId', 'fullname picture jersey')
-        .populate('teamTwo.playersStats.playerId', 'fullname picture jersey');
+            .populate('leagueId', 'name sport')
+            .populate('season', 'year status')
+            .populate('teamOne.teamId', 'name logo')
+            .populate('teamTwo.teamId', 'name logo')
+            .populate('teamOne.playersStats.playerId', 'fullname picture jersey')
+            .populate('teamTwo.playersStats.playerId', 'fullname picture jersey');
 
         if (!updatedRoleplay) {
             const respuesta = createResponse('error', 'Partido no encontrado', null);
@@ -391,13 +311,13 @@ export const getRoleplaysByTeam = async (req, res) => {
                 { 'teamTwo.teamId': teamId }
             ]
         })
-        .populate('leagueId', 'name sport')
-        .populate('season', 'year status')
-        .populate('teamOne.teamId', 'name logo')
-        .populate('teamTwo.teamId', 'name logo')
-        .populate('teamOne.playersStats.playerId', 'fullname picture jersey')
-        .populate('teamTwo.playersStats.playerId', 'fullname picture jersey')
-        .sort({ date: -1 });
+            .populate('leagueId', 'name sport')
+            .populate('season', 'year status')
+            .populate('teamOne.teamId', 'name logo')
+            .populate('teamTwo.teamId', 'name logo')
+            .populate('teamOne.playersStats.playerId', 'fullname picture jersey')
+            .populate('teamTwo.playersStats.playerId', 'fullname picture jersey')
+            .sort({ date: -1 });
 
         const respuesta = createResponse('success', 'Partidos del equipo obtenidos correctamente', roleplays);
         return res.status(200).json(respuesta);
@@ -408,7 +328,7 @@ export const getRoleplaysByTeam = async (req, res) => {
 }
 
 
-
+// TODO corregisr la generación automática
 export const generateLeagueRoleplays = async (req, res) => {
     try {
         const { leagueId, seasonId, startDate, matchIntervalDays = 7 } = req.body;
@@ -426,9 +346,16 @@ export const generateLeagueRoleplays = async (req, res) => {
             return res.status(404).json(respuesta);
         }
 
+        //Verificar que la temporada existe si se proporciona
+        const season = await Season.findById(seasonId);
+        if (!season) {
+            const respuesta = createResponse('error', 'La temporada especificada no existe', null);
+            return res.status(404).json(respuesta);
+        }
+
         // Obtener todos los equipos de la liga
-        const teams = await Team.find({ _id: { $in: league.teams || [] } });
-        
+        const teams = await Team.find({ _id: { $in: season.teams || [] } });
+
         if (teams.length < 2) {
             const respuesta = createResponse('error', 'La liga debe tener al menos 2 equipos para generar partidos', null);
             return res.status(400).json(respuesta);
@@ -436,7 +363,7 @@ export const generateLeagueRoleplays = async (req, res) => {
 
         // Generar todas las combinaciones posibles de partidos (todos contra todos)
         const fixtures = generateRoundRobinFixtures(teams);
-        
+
         // Si se proporciona una fecha de inicio, programar los partidos
         let scheduledFixtures = [];
         if (startDate) {
@@ -450,7 +377,7 @@ export const generateLeagueRoleplays = async (req, res) => {
 
         // Crear los partidos en la base de datos
         const createdRoleplays = [];
-        
+
         for (const fixture of scheduledFixtures) {
             const newRoleplay = new Roleplay({
                 leagueId,
@@ -494,7 +421,7 @@ export const generateLeagueRoleplays = async (req, res) => {
 const generateRoundRobinFixtures = (teams) => {
     const fixtures = [];
     const teamCount = teams.length;
-    
+
     // Si el número de equipos es impar, agregar un "bye" (descanso)
     const hasBye = teamCount % 2 !== 0;
     const totalRounds = hasBye ? teamCount : teamCount - 1;
@@ -579,7 +506,7 @@ export const generateCustomRoleplays = async (req, res) => {
         }
 
         const teams = await Team.find({ _id: { $in: league.teams || [] } });
-        
+
         if (teams.length < 2) {
             const respuesta = createResponse('error', 'La liga debe tener al menos 2 equipos para generar partidos', null);
             return res.status(400).json(respuesta);
@@ -621,7 +548,7 @@ export const generateCustomRoleplays = async (req, res) => {
 
         // Crear partidos en la base de datos
         const createdRoleplays = [];
-        
+
         for (const fixture of scheduledFixtures) {
             const newRoleplay = new Roleplay({
                 leagueId,
@@ -665,12 +592,12 @@ export const generateCustomRoleplays = async (req, res) => {
 const generateSingleEliminationFixtures = (teams) => {
     const fixtures = [];
     const shuffledTeams = [...teams].sort(() => Math.random() - 0.5); // Mezclar equipos
-    
+
     let currentRoundTeams = shuffledTeams;
-    
+
     while (currentRoundTeams.length > 1) {
         const nextRoundTeams = [];
-        
+
         for (let i = 0; i < currentRoundTeams.length; i += 2) {
             if (i + 1 < currentRoundTeams.length) {
                 fixtures.push({
@@ -680,10 +607,10 @@ const generateSingleEliminationFixtures = (teams) => {
                 // En eliminación directa, no especificamos quién avanza
             }
         }
-        
+
         currentRoundTeams = nextRoundTeams;
     }
-    
+
     return fixtures;
 }
 
@@ -693,7 +620,7 @@ export const deleteLeagueRoleplays = async (req, res) => {
         const { leagueId } = req.params;
 
         const result = await Roleplay.deleteMany({ leagueId });
-        
+
         const respuesta = createResponse('success', `Se eliminaron ${result.deletedCount} partidos de la liga`, {
             deletedCount: result.deletedCount
         });

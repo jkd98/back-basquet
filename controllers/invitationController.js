@@ -34,7 +34,6 @@ export const getInvitationsBySeason = async (req, res) => {
     try {
         const { seasonId } = req.params;
         const invitations = await Invitation.find({ seasonId })
-            .populate('usedBy', 'fullname email')
             .sort({ createdAt: -1 });
 
         const respuesta = createResponse('success', 'Invitaciones obtenidas correctamente', invitations);
@@ -45,32 +44,3 @@ export const getInvitationsBySeason = async (req, res) => {
     }
 }
 
-export const validateInvitation = async (req, res) => {
-    try {
-        const { code } = req.body;
-        const invitation = await Invitation.findOne({ code });
-
-        if (!invitation) {
-            const respuesta = createResponse('error', 'Código de invitación no encontrado', null);
-            return res.status(404).json(respuesta);
-        }
-
-        if (invitation.status !== 'pending') {
-            const respuesta = createResponse('error', 'Esta invitación ya ha sido utilizada o expiró', null);
-            return res.status(400).json(respuesta);
-        }
-
-        if (new Date() > invitation.expireAt) {
-            invitation.status = 'expired';
-            await invitation.save();
-            const respuesta = createResponse('error', 'La invitación ha expirado', null);
-            return res.status(400).json(respuesta);
-        }
-
-        const respuesta = createResponse('success', 'Invitación válida', invitation);
-        return res.status(200).json(respuesta);
-    } catch (error) {
-        const respuesta = createResponse('error', 'Error al validar la invitación', null);
-        return res.status(500).json(respuesta);
-    }
-}
