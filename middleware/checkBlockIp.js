@@ -1,5 +1,7 @@
 import Log from '../models/Logs.js'
-import {obtenerIP} from '../helpers/crearLog.js'
+import { obtenerIP } from '../helpers/crearLog.js'
+import { createResponse } from '../helpers/createResponse.js';
+
 const LIMITE_INTENTOS = 3;
 const VENTANA_TIEMPO_MIN = 3; // Tiempo que se reta a la hora actual
 const BLOQUEO_MIN = 3; // Tiempo que bloquea la ip
@@ -13,7 +15,8 @@ export const checkBloquedIP = async (req, res, next) => {
     if (bloqueos.has(ip)) {
         const tiempoBloqueo = bloqueos.get(ip);
         if (Date.now() < tiempoBloqueo) {
-            return res.status(429).json({ message: 'Demasiados intentos. Intenta más tarde.' });
+            const respuesta = createResponse('error', 'Demasiados intentos. Intenta más tarde.');
+            return res.status(429).json(respuesta);
         } else {
             bloqueos.delete(ip); // Ya pasó el tiempo
         }
@@ -33,7 +36,8 @@ export const checkBloquedIP = async (req, res, next) => {
 
     if (intentosFallidos >= LIMITE_INTENTOS) {
         bloqueos.set(ip, Date.now() + BLOQUEO_MIN * 60 * 1000);
-        return res.status(429).json({ message: 'Demasiados intentos. Intenta más tarde.' });
+        const respuesta = createResponse('error', 'Demasiados intentos. Intenta más tarde.');
+        return res.status(429).json(respuesta);
     }
 
     next();
