@@ -18,7 +18,7 @@ export const createTeam = async (req, res) => {
         console.log('Body después de upload:', req.body);
         console.log('File:', req.file);
 
-        const { name, availabilityDays, code, players } = req.body;
+        const { name, availabilityDays} = req.body;
         const { _id } = req.usuario;
 
         // Validaciones
@@ -30,67 +30,15 @@ export const createTeam = async (req, res) => {
             });
         }
 
-        // Validar codigo se temporada
-        const fechaDeHoyUTC = new Date();
-        const invitation = await Invitation.findOne({ code: code });
-
-        if (!invitation) {
-            const respuesta = createResponse('error', 'Código de invitación no encontrado');
-            return res.status(404).json(respuesta);
-        }
-
-        if (invitation.status !== 'pending') {
-            const respuesta = createResponse('error', 'Esta invitación ya ha sido utilizada o expiró');
-            return res.status(400).json(respuesta);
-        }
-
-        if (invitation.expireAt < fechaDeHoyUTC) {
-            invitation.status = 'expired';
-            await invitation.save();
-            const respuesta = createResponse('error', 'La invitación ha expirado');
-            return res.status(400).json(respuesta);
-        }
-
-        const season = await Season.findById(invitation.seasonId);
-        if (!season) {
-            const respuesta = createResponse('error', 'Temporada no encontrada para el código de invitación proporcionado');
-            return res.status(400).json(respuesta);
-        }
-
         //Crear equipo
         const newTeam = new Team({
             name,
             coach: _id,
-            availabilityDays: JSON.parse(availabilityDays), // Parse stringified array
+            availabilityDays: availabilityDays,
             logo: req.file ? req.file.filename : null
         });
-
+        
         await newTeam.save();
-
-        // Crear jugadores
-        if (players) {
-            const playersList = JSON.parse(players); // Parse stringified array
-            if (Array.isArray(playersList)) {
-                const playerPromises = playersList.map(playerData => {
-                    const newPlayer = new Player({
-                        ...playerData,
-                        teamId: newTeam._id
-                    });
-                    return newPlayer.save();
-                });
-                await Promise.all(playerPromises);
-            }
-        }
-
-        //Guardar equipo en la season
-        season.teams.push(newTeam._id);
-
-        // Actualizar invitación
-        invitation.status = 'used';
-        invitation.usedBy = _id;
-        invitation.usedAt = new Date();
-
-        await Promise.all([season.save(), invitation.save()]);
 
         const respuesta = createResponse('success', 'Equipo registrado correctamente');
         return res.status(201).json(respuesta);
@@ -134,10 +82,63 @@ export const getTeamById = async (req, res) => {
             const respuesta = createResponse('error', 'Equipo no encontrado', null);
             return res.status(404).json(respuesta);
         }
+
+        if (team.coach.toString() !== req.usuario._id.toString()) {
+            const respuesta = createResponse('error', 'No autorizado para ver este equipo', null);
+            return res.status(403).json(respuesta);
+        }
+
         const respuesta = createResponse('success', 'Equipo obtenido correctamente', team);
         return res.status(200).json(respuesta);
     } catch (error) {
         const respuesta = createResponse('error', 'Error al obtener el equipo', null);
+        return res.status(500).json(respuesta);
+    }
+}
+
+export const addTeamToSeason = async (req, res) => {
+    const { teamId,code } = req.body;
+    try {
+        // Validar codigo se temporada
+        const fechaDeHoyUTC = new Date();
+        const invitation = await Invitation.findOne({ code: code });
+
+        if (!invitation) {
+            const respuesta = createResponse('error', 'Código de invitación no encontrado');
+            return res.status(404).json(respuesta);
+        }
+
+        if (invitation.expireAt < fechaDeHoyUTC) {
+            const respuesta = createResponse('error', 'La invitación ha expirado');
+            return res.status(400).json(respuesta);
+        }
+
+        const season = await Season.findById(invitation.seasonId);
+        if (!season) {
+            const respuesta = createResponse('error', 'Temporada no encontrada para el código de invitación proporcionado');
+            return res.status(400).json(respuesta);
+        }
+
+        const team = await Team.findById(teamId);
+        if (!team) {
+            const respuesta = createResponse('error', 'Equipo no encontrado');
+            return res.status(404).json(respuesta);
+        }
+
+        if (season.teams.includes(team._id)) {
+            const respuesta = createResponse('error', 'El equipo ya está agregado a la temporada');
+            return res.status(400).json(respuesta);
+        }
+
+        //Guardar equipo en la season
+        season.teams.push(team._id);
+
+        await season.save();
+        const respuesta = createResponse('success', 'Equipo agregado a la temporada correctamente');
+        return res.status(200).json(respuesta);
+
+    } catch (error) {
+        const respuesta = createResponse('error', 'Error al agregar el equipo');
         return res.status(500).json(respuesta);
     }
 }

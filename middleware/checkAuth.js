@@ -21,7 +21,7 @@ const checkAuth = async (req, res, next) => {
                 return res.status(401).json(respuesta); // 401 para token expirado
             } else if (error.name === 'JsonWebTokenError') {
                 respuesta.status = 'error'
-                respuesta.msg = 'Token inválido'
+                respuesta.msg = 'Token no válido'
                 return res.status(401).json(respuesta); // 401 para token inválido
             } else {
                 respuesta.status = 'error'
