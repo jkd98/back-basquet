@@ -18,7 +18,7 @@ export const createTeam = async (req, res) => {
         console.log('Body después de upload:', req.body);
         console.log('File:', req.file);
 
-        const { name, availabilityDays} = req.body;
+        const { name, availabilityDays, players} = req.body;
         const { _id } = req.usuario;
 
         // Validaciones
@@ -39,6 +39,35 @@ export const createTeam = async (req, res) => {
         });
         
         await newTeam.save();
+
+         if (players) {
+            let parsedPlayers;
+
+            // `players` llega como string JSON desde el FormData
+            try {
+                parsedPlayers = Array.isArray(players) ? players : JSON.parse(players);
+            } catch (e) {
+                console.error('Error al parsear players:', e);
+                return res.status(400).json({
+                status: 'error',
+                msg: 'Formato de jugadores inválido',
+                data: null,
+                });
+            }
+
+            if (Array.isArray(parsedPlayers) && parsedPlayers.length > 0) {
+                const playersToInsert = parsedPlayers.map((p) => ({
+                fullname: p.fullname,
+                birthday: p.birthday,      // el front ya envía la fecha
+                jersey: p.jersey,          // Mongoose lo castea a Number
+                teamId: newTeam._id,
+                isLider: !!p.isLider,
+                picture: p.picture || '',  // por ahora viene vacío
+                }));
+
+                await Player.insertMany(playersToInsert);
+            }
+            }
 
         const respuesta = createResponse('success', 'Equipo registrado correctamente');
         return res.status(201).json(respuesta);
