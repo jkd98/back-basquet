@@ -37,7 +37,6 @@ conectarDB();
 const whiteList = [
     process.env.E_FRONT,
     process.env.TEST_BACK,
-    'http://localhost:4200' // Frontend Angular en desarrollo
 ];
 
 if (process.argv[2] === '--api') {
@@ -60,8 +59,23 @@ const corsOptions = {
     credentials: true
 };
 
+// Configuración CORS para archivos estáticos
+const corsOptionsUploads = {
+    origin: function (origin, callback) {
+        // Permitir si no hay origin (para carga directa de img) O si está en la lista blanca
+        if (!origin || whiteList.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error("Error de CORS"));
+        }
+    },
+    // Las credenciales generalmente no son necesarias para las imágenes GET
+    credentials: false,
+    // ¡IMPORTANTE! Limitar el acceso a solo lectura
+    methods: ['GET', 'HEAD']
+};
+
 //Aplicando CORS
-app.use(cors(corsOptions));
 
 // Middleware de sanitización
 app.use((req, res, next) => {
@@ -73,7 +87,9 @@ app.use((req, res, next) => {
 
 // Rutas
 //http://tu-servidor.com/uploads/nombreArchivo.jpg
-app.use('/public/uploads', express.static('public/uploads')); // 'uploads' es la carpeta donde guardas las imágenes
+app.use('/public/uploads', cors(corsOptionsUploads), express.static('public/uploads')); // 'uploads' es la carpeta donde guardas las imágenes
+
+app.use(cors(corsOptions));
 app.use('/auth', userRoutes);
 app.use('/league', leagueRoutes);
 app.use('/team', teamRoutes);
